@@ -1,4 +1,7 @@
 # learning go with tests
+## rules of thumb
+- the test speaks to us more clearly, as if it were an assertion of truth, `not a sequence of operations` 
+
 ## arrays and slices
 - ref: https://go.dev/blog/slices-intro
 ### arrays
@@ -24,4 +27,11 @@ mySlice := []int{1,2,3}
 mySlice := make([int{}])
 
 
+```
+
+### structs
+```go
+// %#V prints struct and values 
+// %g - max default precision
+t.Errorf("%#v - got %g want %g", tt.shape, got, tt.want)
 ```
