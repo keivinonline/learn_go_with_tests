@@ -108,3 +108,54 @@ var dict = map[string]string{}
 //// 2- or this 
 var dict = make(map[string]string)
 ```
+
+## dependency injection
+- there are lots of common misunderstandings on this topic
+### benefits
+- don't need a framework
+- does not overcomplicate design
+- facilitates testing
+- allows to write general-purpose functions
+### details
+- AKA `pass in` 
+- function does NOT NEED TO CARE about
+    - where the print happens
+    - how the print happens 
+- just need to accept an `interface` rather than `concrete` type 
+- based on `fmt.Printf`,
+    - From this we can infer that os.Stdout implements io.Writer; Printf passes os.Stdout to Fprintf which expects an io.Writer.
+```go
+type Writer interface {
+	Write(p []byte) (n int, err error)
+}
+```
+### samples
+```go
+	// stdout - hard to capture using testing framework
+	fmt.Printf("Hello, %v\n", name)
+// Use io.Writer interface
+//  - compatible with any other struct that implements io.Writer 
+//  - e.g. os.Stdout, http.ResponseWriter
+func Greet(writer io.Writer, name string) {
+	fmt.Fprintf(writer, greetingPrefix+name)
+}
+// instead of bytes.Buffer 
+//  - which does not implements io.Writer  interface
+func Greet(writer *bytes.Buffer*, name string) {
+	fmt.Fprintf(writer, greetingPrefix+name)
+}
+
+```
+### summary
+- Testing the code
+    - DI motivates you to inject in a db dependency via interfaces which you can mock
+- separate our concerns
+    - decouple where the data goes and how to generate it 
+    - e.g. of too many responsibilities 
+        - method/func generating data AND writing to db 
+        - method/func handling HTTP requests and doing domain level logic
+- allow code to be reused AKA DRY
+    
+### io.Writer interface
+- by using this interface, we can use `bytes.Buffer` in the tests
+- can use other `Writer`s from std lib like `os.Stdout` to use the function the matches `io.Writer` 
