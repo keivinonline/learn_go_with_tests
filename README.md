@@ -91,3 +91,20 @@ errcheck .
 ## errors
 - signify failure when calling function or method
 - check for errors, but also handle them gracefully
+
+## maps 
+- can modify maps without passing as an address to it e.g. `&myMap`
+- `a map value is a pointer o a runtime.hmap structure`
+- when passing a map to a function/method, it only copies the pointer part and not the underlying data structure that contains the data. 
+- maps can be `nil`
+- reading `nil` map returns empty map
+- writing to `nil` map causes *runtime panic*
+```go
+// NEVER initialize nil map
+var m map[string]string
+// DO THIS INSTEAD
+//// 1 - either this
+var dict = map[string]string{} 
+//// 2- or this 
+var dict = make(map[string]string)
+```
