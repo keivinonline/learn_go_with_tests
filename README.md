@@ -159,3 +159,42 @@ func Greet(writer *bytes.Buffer*, name string) {
 ### io.Writer interface
 - by using this interface, we can use `bytes.Buffer` in the tests
 - can use other `Writer`s from std lib like `os.Stdout` to use the function the matches `io.Writer` 
+## mocking
+- important skill to slice up requirements as small as you can
+### what mocking can do but tests can't
+- e.g. we have a countdown app that has 3 seconds of sleep
+```go
+func Countdown(out io.Writer) {
+	for i := countdownStart; i > 0; i-- {
+		fmt.Fprintln(out, i)
+		time.Sleep(1 * time.Second)
+	}
+	fmt.Fprint(out, finalWord)
+}
+```
+- slow tests ruin dev productivity
+- it has a dependency on `Sleep`ing 
+- we could *mock* `time.Sleep` instead of *real* `time.Sleep` and we can spy on the calls
+- if mocking becomes too hard,
+    - break the module apart
+    - dependencies are too fine-grained
+    - tests are too concerned with implementation details
+        - test the behavior instead
+- focus on testing *useful behavior* unless certain implementation details are critical
+### test guidance
+- `refactoring`
+    - code changes but behavior remains the same 
+    - "am I testing the behavior I want, or the implementation details ?"
+    - "if I were to refactor this code, would I have to make lots of changes to tests ?"
+- focus on testing `public functions` as `private functions` are part of the implementation detail to support the former
+- if a test is working with more than 3 mocks - it is a red flag. time to rethink the design
+- `use spies with caution`
+    - only use it if you really need to spy on the inner workings
+    - has tight coupling
+### what can mocking do ?
+- calling a service that *can fail*
+- testing `states` of a system
+- mocking dbs
+- mocking webservices
+### test double
+- mocks are also known as `test double`
