@@ -198,3 +198,89 @@ func Countdown(out io.Writer) {
 - mocking webservices
 ### test double
 - mocks are also known as `test double`
+## concurrency 
+- `having more than 1 thing in progress` 
+- e.g. waiting the kettle to boil while making toast
+### CheckWebsites
+- instead of waiting for a website to respond before sending a request to next site, tell the program to make the next request white it is waiting - AKA do not site idle 
+- *blocking* - normally, when we call `DoSomething()` func, computer will wait for it to finish
+- *goroutine* - when an operation does not `block` in Go and run in a separate process
+- Analogy
+    - Process - reading down the page of Go code from top to bottom
+    - Separate process - another *reader* begins reading inside each function while letting the original reader carry on ready down a page. AKA like spawning a sub process ? 
+- use `go doSomething()` to start a goroutine
+```go
+
+func CheckWebsites(wc WebsiteChecker, urls []string) map[string]bool {
+	results := make(map[string]bool)
+
+	for _, url := range urls {
+		// // Blocking operation
+		// results[url] = wc(url)
+
+		// // Goroutine via anonymous functions
+        // // each iteration of the loop starts a new goroutine
+		go func() {
+			results[url] = wc(url)
+		}()
+
+	}
+	return results
+}
+
+```
+### Anonymous functions
+- can be executed at the same time they are declared via the `()` 
+- maintain access to all scope defined up till the point of anon func
+### Handling concurrency
+- hard to predict when not handled properly. Hence tests are required
+- the following failed the test as it gives an empty `map[]` as 
+    - none of the goroutines spawned had enough time to `add their results to the results map` which ended up being empty
+- `fatal error: concurent map writes` 
+    - when 2 goroutines write to the results map at the same time AKA *race condition*
+- use the race detector 
+```go
+go test -race
+```
+```bash
+==================
+WARNING: DATA RACE
+Write at 0x00c000120420 by goroutine 7:
+  runtime.mapaccess2_faststr()
+...
+
+Previous read at 0x00c000120420 by goroutine 6:
+  reflect.mapiterelem()
+      /Users/keivinc/.gvm/gos
+```
+### channels
+- data races can be solved by coordinating goroutines using `channels`
+- channels can do both  
+    - `receive data`
+    - `send data`
+- 
+### benchmarking
+- before
+```bash
+❯ gtb
+goos: darwin
+goarch: arm64
+pkg: github.com/keivinonline/elastic-go-examples/learn_go_with_tests/concurrency
+BenchmarkCheckWebsites-8               1        2328199000 ns/op
+PASS
+ok      github.com/keivinonline/elastic-go-examples/learn_go_with_tes
+```
+- after
+```bash
+goos: darwin
+goarch: arm64
+pkg: github.com/keivinonline/elastic-go-examples/learn_go_with_tests/concurrency
+BenchmarkCheckWebsites-8              56          21107448 ns/op
+PASS
+ok      github.com/keivinonline/elastic-go-examples/learn_go_with_tests/concurrency     1.432s
+```
+### summary
+- `goroutines` are the basic units of concurrency in Go
+- `anonymous` functions are used to start each of the concurrent processes
+- `channels` - help to organize and control communication between diff processes and avoid race condition
+- `race detector` helps to debug problems with concurrent code
