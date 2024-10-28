@@ -258,7 +258,7 @@ Previous read at 0x00c000120420 by goroutine 6:
 - channels can do both  
     - `receive data`
     - `send data`
-- 
+- cannot send `nil` to channels 
 ### benchmarking
 - before
 ```bash
@@ -284,3 +284,41 @@ ok      github.com/keivinonline/elastic-go-examples/learn_go_with_tests/concurre
 - `anonymous` functions are used to start each of the concurrent processes
 - `channels` - help to organize and control communication between diff processes and avoid race condition
 - `race detector` helps to debug problems with concurrent code
+
+## select
+### Problems with using real external endpoints
+- slow
+- flaky
+- can't test edge cases
+### net/http/httptest
+- enabled mocking of HTTP server
+```go
+    // This creates a new HTTP Server
+	slowServer := httptest.NewServer(
+        // type HandlerFunc func(ResponseWriter, *Request)
+        // 
+		http.HandlerFunc(
+			func(w http.ResponseWriter, r *http.Request) {
+				time.Sleep(20 * time.Millisecond)
+				w.WriteHeader(http.StatusOK)
+			}))
+```
+### 
+```go
+// This is a blocking call, as you are waiting for a value
+myVar := <-ch
+```
+- `select` allows us to wait on *multiple channels*
+- can include `time.After` in test cases to prevent system blocking forever
+- create a func to simulate timeout in `milliseconds` instead of waiting *real seconds*
+```go
+	t.Run("returns an error if server does not respond within timeout", func(t *testing.T) {
+		server := makeDelayedServer(25 * time.Millisecond)
+		defer server.Close()
+
+		_, err := ConfigurableRacer(server.URL, server.URL, 20*time.Millisecond)
+		if err == nil {
+			t.Error("expected an error byt didn't get one")
+		}
+	})
+```
