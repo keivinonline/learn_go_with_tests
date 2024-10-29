@@ -322,3 +322,14 @@ myVar := <-ch
 		}
 	})
 ```
+## reflection
+- a form a of metaprogramming 
+- ability of a program to examine its own structure particularly through types
+### interface{}
+- can think of this as `any` 
+- in fact, `any` is an alias to `interface{}` 
+- usage of `interface{}` will lose out type safety
+### usage of reflection
+- helps to inspect *anything* that is passed and try to figure out its type
+- hence, only use `reflection` when you need to 
+- for polymorphic funcs, design *around an interface* (not `interface{}` literally)
